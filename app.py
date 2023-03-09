@@ -277,3 +277,27 @@ def sell():
         stocks = db.execute("SELECT stock FROM transactions WHERE username = ? GROUP BY stock", username)
         
         return render_template("sell.html", stocks=stocks)
+    
+@app.route("/addcash", methods=["GET", "POST"])
+@login_required
+def addcash():
+    """Adds cash into a user's account"""
+    if request.method == "POST":
+        # get amount
+        try:
+            amount = int(request.form.get("amount"))
+        except ValueError:
+            return apology("Enter valid amount", 403)
+        if amount <= 0:
+            return apology("Enter valid amount", 403)
+        
+        # query the users db
+        row_users = db.execute("SELECT cash FROM users where id = ?", session["user_id"])
+        cash = row_users[0]["cash"]
+
+        # update db
+        db.execute("UPDATE users SET cash = ? WHERE id = ?", cash + amount, session["user_id"])
+
+        return redirect("/")
+    else:
+        return render_template("addcash.html")
